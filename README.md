@@ -4,9 +4,7 @@ Risk-Aware Maintenance and Production Scheduling for Stochastic Flexible Job Sho
 
 This repository contains only the compact implementation used by the paper:
 the health-aware FJSP environment, scenario/cost model, RAMP policy, PPO
-trainer, PDR baselines, and the nominal FJSP parser. Datasets, checkpoints and
-generated results are deliberately excluded, following the organization of the
-[reference NCO-for-Stochastic-FJSP repository](https://github.com/Igorsmit00/NCO-for-Stochastic-FJSP).
+trainer, PDR baselines, and the nominal FJSP parser.
 
 ## Install
 
