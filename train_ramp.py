@@ -56,7 +56,6 @@ from ramp.provenance import build_reproducibility_manifest, production_source_ha
 from ramp.profiling import ThroughputProfiler, tensor_bytes
 from ramp.route_audit import ROUTE_AUDIT_SCHEMA, RouteAuditAccumulator
 from ramp.state import new_boundary_events
-from ramp.steel_data import load_steel_instance_bundle
 from ramp.experiments import METHODS, configure_environment, configure_model, get_method
 from data_utils import load_data_from_single_file
 from model.ramp_core import RAMPModelConfig
@@ -156,12 +155,6 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--train-dir", type=Path, action="append", default=[])
     parser.add_argument("--validation-dir", type=Path, action="append", default=[])
     parser.add_argument("--test-dir", type=Path, action="append", default=[])
-    parser.add_argument(
-        "--steel-suite",
-        choices=("main", "sensitivity", "large_scale_zero_shot"),
-        default=None,
-        help="load the admitted Steel 8/1/2 suite from configs/steel_fjsp_suites.json",
-    )
     parser.add_argument(
         "--admission-suite",
         choices=("sd3_valid",),
@@ -367,15 +360,7 @@ def _smoke_record(split: str) -> InstanceRecord:
 def _read_instance(
     path: Path, split: str, health_overlay: Path | None = None
 ) -> InstanceRecord:
-    if "Steel_FJSP_Real_v1" in path.resolve().parts:
-        steel = load_steel_instance_bundle(path)
-        if steel.split_metadata.status != "VALID":
-            raise ValueError(
-                f"Steel instance is not admitted: {steel.split_metadata.status}"
-            )
-        job_lengths, nominal = steel.job_lengths, steel.nominal_processing_times
-    else:
-        job_lengths, nominal = load_data_from_single_file(str(path))
+    job_lengths, nominal = load_data_from_single_file(str(path))
     if len(job_lengths) == 0:
         raise FileNotFoundError(path)
     return InstanceRecord(
@@ -402,10 +387,8 @@ def load_splits(args: argparse.Namespace) -> dict[str, list[InstanceRecord]]:
     """Load strict, path-disjoint train/validation/test partitions."""
 
     admission_suite = getattr(args, "admission_suite", None)
-    if args.steel_suite is not None and admission_suite is not None:
-        raise ValueError("--steel-suite and --admission-suite are mutually exclusive")
     if args.smoke:
-        if args.steel_suite is not None or admission_suite is not None:
+        if admission_suite is not None:
             raise ValueError("--smoke cannot be combined with a dataset suite")
         return {
             "train": [_smoke_record("train")],
@@ -413,7 +396,7 @@ def load_splits(args: argparse.Namespace) -> dict[str, list[InstanceRecord]]:
             "test": [_smoke_record("test")],
         }
     if args.instance is not None:
-        if args.steel_suite is not None or admission_suite is not None:
+        if admission_suite is not None:
             raise ValueError("--instance cannot be combined with a dataset suite")
         if not args.evaluate_only:
             raise ValueError("--instance is evaluation-only; formal training needs split dirs")
@@ -431,47 +414,6 @@ def load_splits(args: argparse.Namespace) -> dict[str, list[InstanceRecord]]:
             split: [_read_instance(path, split) for path in selected]
             for split, selected in paths.items()
         }
-    if args.steel_suite is not None:
-        if args.train_dir or args.validation_dir or args.test_dir:
-            raise ValueError("--steel-suite cannot be combined with explicit split dirs")
-        root = Path(__file__).resolve().parent
-        suite = json.loads(
-            (root / "configs/steel_fjsp_suites.json").read_text(encoding="utf-8")
-        )
-        dataset_root = root / suite["dataset_root"]
-        split_payload = json.loads(
-            (dataset_root / suite["main"]["split_manifest"]).read_text(
-                encoding="utf-8"
-            )
-        )
-        selected_suite = suite[args.steel_suite]
-        variant = selected_suite["variant"]
-        if args.steel_suite == "large_scale_zero_shot":
-            zero_shot = json.loads(
-                (dataset_root / selected_suite["test_manifest"]).read_text(
-                    encoding="utf-8"
-                )
-            )
-            test_paths: list[Path] = []
-            for entry in zero_shot["test"]:
-                path = dataset_root / entry["path"]
-                digest = hashlib.sha256(path.read_bytes()).hexdigest()
-                if digest != entry["sha256"]:
-                    raise ValueError(f"Steel zero-shot hash mismatch: {path}")
-                test_paths.append(path)
-            split_payload = {
-                "train": split_payload["train"],
-                "validation": split_payload["validation"],
-                "test": [path.relative_to(dataset_root).as_posix() for path in test_paths],
-            }
-        result: dict[str, list[InstanceRecord]] = {}
-        for split in ("train", "validation", "test"):
-            paths = []
-            for relative in split_payload[split]:
-                selected = relative.replace("process_only_median", variant)
-                paths.append(dataset_root / selected)
-            result[split] = [_read_instance(path, split) for path in paths]
-        return result
     splits = {
         "train": _discover(args.train_dir, "train"),
         "validation": _discover(args.validation_dir, "validation"),

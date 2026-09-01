@@ -132,7 +132,6 @@ def _schema_hash(type_: type) -> str:
 def _supporting_paths(project: Path) -> set[Path]:
     paths = {
         project / "configs" / "paper_ramp.json",
-        project / "configs" / "steel_fjsp_suites.json",
         project / "configs" / "fjsp_admission_suites.json",
     }
     formal = project / "configs" / "paper_ramp.json"
@@ -144,12 +143,6 @@ def _supporting_paths(project: Path) -> set[Path]:
                     directory = project / relative
                     if directory.is_dir():
                         paths.update(directory.rglob("*.fjs"))
-    steel_split = project / "data/Steel_FJSP_Real_v1/splits/first_paper_10x15_split.json"
-    if steel_split.is_file():
-        payload = json.loads(steel_split.read_text(encoding="utf-8"))
-        steel_root = project / "data/Steel_FJSP_Real_v1"
-        for key in ("train", "validation", "test", "quarantined"):
-            paths.update(steel_root / relative for relative in payload.get(key, []))
     return {path for path in paths if path.is_file()}
 
 

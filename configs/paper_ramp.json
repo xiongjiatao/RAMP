@@ -35,7 +35,6 @@
   },
   "datasets": {
     "synthetic": ["SD1-10x5", "SD1-20x5"],
-    "industrial": ["ISD1-10x15", "ISD2-20x15"],
     "public_zero_shot": ["Brandimarte mk01-mk10", "Hurink rdata"]
   }
 }

@@ -81,10 +81,6 @@ The main settings are recorded in
 overlays; `pdr_baselines.py` and `pdr_adapter.py` expose FIFO, MOR, MWKR and
 SPT comparisons.
 
-For the industrial bundle, place the manifest-validated Steel-FJSP data under
-`data/Steel_FJSP_Real_v1` and use `--steel-suite main`; the suite contracts are
-included in `configs/`.
-
 ## Output and result aggregation
 
 Training writes checkpoints and JSON logs under `runs/`. The JSON output
