@@ -1,0 +1,26 @@
+{
+  "schema": "ramp_steel_suites_v1",
+  "dataset_root": "data/Steel_FJSP_Real_v1",
+  "source_zip": "data/Steel_FJSP_Real_v1.zip",
+  "source_zip_sha256": "a788ea6ff892488f7a76ad2115f2e5004d5444c53bd4239e6e9fd973911dfcfb",
+  "exact_transport_consumed": false,
+  "main": {
+    "variant": "process_only_median",
+    "split_manifest": "splits/first_paper_10x15_split.json",
+    "train_count": 8,
+    "validation_count": 1,
+    "test_count": 2
+  },
+  "sensitivity": {
+    "variant": "expected_transport_median",
+    "semantics": "mean outbound transport embedded in processing time; not exact sequence-dependent transport"
+  },
+  "large_scale_zero_shot": {
+    "variant": "process_only_median",
+    "train_validation_manifest": "splits/first_paper_10x15_split.json",
+    "test_manifest": "splits/first_paper_large_scale_zero_shot.json",
+    "test_sizes": ["20x15", "40x15", "120x15"],
+    "test_count": 10
+  },
+  "formal_training_started": false
+}

@@ -1,0 +1,15 @@
+{
+  "schema": "ramp_fjsp_admission_suites_v1",
+  "suites": {
+    "sd3_valid": {
+      "type": "manifest_partition",
+      "train_root": "data/SD3",
+      "train_manifest": "data/SD3/admission_manifest.json",
+      "reference_root": "data/data_train_vali/SD3",
+      "reference_manifest": "data/data_train_vali/SD3/admission_manifest.json",
+      "reference_partition": {"method": "sorted_index_modulo", "modulus": 5, "validation_remainder": 0},
+      "expected_counts": {"train": 702, "validation": 136, "test": 542},
+      "quarantine_policy": "Only status=VALID entries are admitted; 22 zero-alternative records remain quarantined."
+    }
+  }
+}

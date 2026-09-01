@@ -1,0 +1,41 @@
+{
+  "paper": "RAMP: Risk-Aware Maintenance and Production Scheduling for Stochastic Flexible Job Shops",
+  "method": "ramp",
+  "regimes": {
+    "H0": "healthy machines, nominal processing times",
+    "H1": "stochastic processing, degradation, failures, PM and CM"
+  },
+  "training": {
+    "updates": 500,
+    "seeds": [400, 401, 402],
+    "policy_scenarios": 32,
+    "reward_scenarios": 128,
+    "batch_size": 8,
+    "validation_selection_metric": "cost",
+    "validation_interval": 10,
+    "validation_instances": 20,
+    "test_instances": 100,
+    "stochastic_evaluation_samples": 16
+  },
+  "ppo": {
+    "learning_rate": 0.0003,
+    "gamma": 1.0,
+    "gae_lambda": 0.98,
+    "clip_ratio": 0.2,
+    "epochs": 4,
+    "value_coefficient": 0.5,
+    "entropy_coefficient": 0.01,
+    "max_grad_norm": 1.0
+  },
+  "risk_routing": {
+    "risk_logit_coefficient": 2.0,
+    "survival_threshold": 0.95,
+    "cvar_alpha": 0.95,
+    "cvar_weight": 0.5
+  },
+  "datasets": {
+    "synthetic": ["SD1-10x5", "SD1-20x5"],
+    "industrial": ["ISD1-10x15", "ISD2-20x15"],
+    "public_zero_shot": ["Brandimarte mk01-mk10", "Hurink rdata"]
+  }
+}
